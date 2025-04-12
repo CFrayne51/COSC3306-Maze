@@ -1,5 +1,8 @@
+//used npm and vite to import, couldn't get the other fashion to work
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'; 
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 
 //INIT
 const scene = new THREE.Scene();
@@ -10,7 +13,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-//camera.position.set(0, 1.6, 0);
+//camera.position.set(0, 1.6, 0); --- Camera position set later when the walls are created
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -57,7 +60,7 @@ scene.add(ground);
 const TILE_SIZE = 2;
 camera.position.set(1 * TILE_SIZE, 1.6, 1 * TILE_SIZE); //Set position of camera so it starts inside the maze 
 const wallGeometry = new THREE.BoxGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE);
-const wallTexture = textureLoader.load('textures/Wall.png');
+const wallTexture = textureLoader.load('textures/Wall.jpg');
 wallTexture.wrapS = wallTexture.wrapT = THREE.RepeatWrapping;
 wallTexture.repeat.set(1, 1);
 
@@ -74,7 +77,7 @@ function createWall(x, z) {
 const mazeLayout = [
   [1, 1, 1, 1, 1, 1, 1, 1],
   [1, 0, 0, 0, 1, 0, 0, 0],
-  [1, 0, 1, 0, 1, 1, 0, 1],
+  [1, 0, 0, 0, 1, 1, 0, 1],
   [1, 0, 0, 0, 1, 0, 0, 1],
   [1, 1, 0, 1, 1, 0, 1, 1],
   [1, 0, 0, 0, 0, 0, 0, 1],
@@ -90,6 +93,52 @@ mazeLayout.forEach((row, rowIndex) => {
     }
   });
 });
+
+//OBJECTS
+const objLoader = new OBJLoader();
+const mtlLoader = new MTLLoader();
+
+//Not sure why this one isn't working, let me know
+mtlLoader.load('/models/grassandrocks.mtl', (materials) => {
+  materials.preload();
+
+objLoader.load(
+  '/models/grassandrocks.obj',
+  function (object) {
+    console.log('Loaded object:', object);
+    object.position.set(TILE_SIZE*2, 1, TILE_SIZE*2);
+    scene.add(object);
+  },
+	function ( xhr ) {
+		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+	},
+	function ( err ) {
+		console.error( 'An error happened' );
+	});
+});
+
+//rubber duck
+objLoader.load(
+  '/models/Duck.obj',
+  function (object) {
+    object.position.set(TILE_SIZE*5, 0, TILE_SIZE);
+    object.scale.set(0.04,0.04,0.04)
+    object.rotation.y = Math.PI / 2;
+    object.traverse(child => {
+      if (child.isMesh) {
+        child.material = wallMaterial; //applying the walls texture
+      }
+    });
+    scene.add(object);
+  },
+  function ( xhr ) {
+		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+	},
+	// onError callback
+	function ( err ) {
+		console.error( 'An error happened' );
+	}
+);
 
 //LIGHT
 //ambient
@@ -170,6 +219,7 @@ const speed = 0.05;
 function animate() {
   requestAnimationFrame(animate);
   
+  //movement
   const direction = new THREE.Vector3();
 
   if (keys.forward) direction.z -= 1;
