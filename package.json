@@ -1,0 +1,16 @@
+{
+  "name": "cosc3306-maze",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "dev": "vite"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "three": "^0.175.0",
+    "vite": "^6.2.6"
+  }
+}
